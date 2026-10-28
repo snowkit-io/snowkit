@@ -1,0 +1,53 @@
+{
+  "name": "snowkit",
+  "mcpName": "io.snowkit/snowkit",
+  "version": "0.1.2",
+  "description": "Private tools that run on your computer. Merge, split and rotate PDFs, make QR codes, format JSON and SQL, and more, from the command line or any MCP client. Your files never leave your machine.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Snowkit",
+  "homepage": "https://snowkit.io/docs/ai-apps/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snowkit-io/snowkit.git"
+  },
+  "bugs": "https://github.com/snowkit-io/snowkit/issues",
+  "bin": {
+    "snowkit": "bin/snowkit.js"
+  },
+  "exports": {
+    ".": "./src/tools.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "pdf",
+    "merge-pdf",
+    "split-pdf",
+    "qr-code",
+    "json",
+    "sql-formatter",
+    "cli",
+    "privacy",
+    "offline"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "sync-engine": "node scripts/sync-engine.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "pdf-lib": "1.17.1",
+    "zod": "4.6.5"
+  }
+}
