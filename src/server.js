@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { TOOLS, toolLink, ToolError } from "./tools.js";
+import { TOOLS, toolLink, linkLabel, ToolError } from "./tools.js";
 
 const INSTRUCTIONS =
   "Snowkit tools run on this computer and never send files or text anywhere. Pass full file paths. " +
@@ -32,7 +32,7 @@ export function createServer(version) {
           const result = await tool.run(args || {});
           const parts = [result.text];
           if (result.output !== undefined) parts.push(result.output.replace(/\n$/, ""));
-          parts.push("Open in Snowkit: " + toolLink(tool, args));
+          parts.push(linkLabel(tool, args) + ": " + toolLink(tool, args));
           return { content: [{ type: "text", text: parts.join("\n\n") }] };
         } catch (e) {
           return { content: [{ type: "text", text: message(e) }], isError: true };

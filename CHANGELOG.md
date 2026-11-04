@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Results from text tools open in Snowkit with your content already filled in, carried in the link itself so it still never reaches a server.
+- PDF results link to Snowkit PDF to sign, fill, mark up or compress the file.
+
 ## 0.1.2
 
 - Added registry metadata so MCP apps and directories can find Snowkit.

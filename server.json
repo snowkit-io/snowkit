@@ -4,12 +4,12 @@
   "title": "Snowkit",
   "description": "Private tools that run on your computer: merge, split and rotate PDFs, QR codes, JSON, SQL and more.",
   "websiteUrl": "https://snowkit.io/docs/ai-apps/",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "snowkit",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "transport": {
         "type": "stdio"
       }

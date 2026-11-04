@@ -75,7 +75,7 @@ test("MCP server lists and runs tools over stdio", async (t) => {
   const merged = await client.callTool({ name: "pdf_merge", arguments: { inputs: [a, b] } });
   assert.equal(merged.isError, undefined);
   assert.match(merged.content[0].text, /Merged 2 files into 3 pages/);
-  assert.match(merged.content[0].text, /Open in Snowkit: https:\/\/snowkit\.io\/merge-pdf\//);
+  assert.match(merged.content[0].text, /Snowkit PDF: https:\/\/snowkit\.io\/pdf-workspace\//);
   assert.ok((await readdir(dir)).includes("one-merged.pdf"));
 
   const repeat = await client.callTool({ name: "pdf_merge", arguments: { inputs: [a, b] } });

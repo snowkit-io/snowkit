@@ -210,9 +210,45 @@ export function findTool(name) {
   return TOOLS.find((t) => t.name === name);
 }
 
+const MAX_FRAGMENT = 20000;
+const PDF_APP = { label: "Sign, fill, mark up or compress it in Snowkit PDF", slug: "pdf-workspace" };
+const NEXT = { pdf_merge: PDF_APP, pdf_split: PDF_APP, pdf_extract_pages: PDF_APP, pdf_rotate: PDF_APP, pdf_info: PDF_APP };
+
+const PREFILL = {
+  qr_code: (a) => (/^https?:\/\/\S+$/i.test(a.text || "") ? ["qr-code", { url: a.text }] : null),
+  json_format: (a) => (a.text ? ["json-tools", { json: a.text }] : null),
+  json_validate: (a) => (a.text ? ["json-tools", { json: a.text }] : null),
+  sql_format: (a) => (a.text ? ["sql-formatter", { sql: a.text, case: a.keyword_case }] : null),
+  text_stats: (a) => (a.text ? ["readability-checker", { text: a.text }] : null),
+  color_convert: (a) => (/^#?[0-9a-f]{3,8}$/i.test(a.color || "") && !a.against ? ["color-converter", { color: a.color.replace(/^#/, "") }] : null),
+  cron_explain: (a) => (a.expression ? ["cron-expression", { cron: a.expression }] : null),
+  markdown_to_pdf: (a) => (a.markdown ? ["markdown-to-pdf", { markdown: a.markdown, page: a.page }] : null),
+};
+
+function fragment(params) {
+  return Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => k + "=" + encodeURIComponent(String(v)))
+    .join("&");
+}
+
 export function toolLink(tool, args) {
-  const slug = typeof tool.link === "function" ? tool.link(args) : tool.link;
+  const a = args || {};
+  const fill = PREFILL[tool.name] && PREFILL[tool.name](a);
+  if (fill) {
+    const frag = fragment(fill[1]);
+    if (frag && frag.length <= MAX_FRAGMENT) return SITE + fill[0] + "/#" + frag;
+  }
+  if (NEXT[tool.name]) return SITE + NEXT[tool.name].slug + "/";
+  const slug = typeof tool.link === "function" ? tool.link(a) : tool.link;
   return SITE + slug + "/";
+}
+
+export function linkLabel(tool, args) {
+  const a = args || {};
+  if (PREFILL[tool.name] && PREFILL[tool.name](a)) return "Open this in Snowkit";
+  if (NEXT[tool.name]) return NEXT[tool.name].label;
+  return "Open in Snowkit";
 }
 
 export async function runTool(name, args = {}) {
