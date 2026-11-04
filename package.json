@@ -1,7 +1,7 @@
 {
   "name": "snowkit",
   "mcpName": "io.snowkit/snowkit",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Private tools that run on your computer. Merge, split and rotate PDFs, make QR codes, format JSON and SQL, and more, from the command line or any MCP client. Your files never leave your machine.",
   "type": "module",
   "license": "MIT",

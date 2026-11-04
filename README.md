@@ -26,6 +26,10 @@ Your files never leave your computer. Snowkit has no account, sends nothing over
 | `text_transform` | Changes case, makes URL slugs, or removes duplicate lines |
 | `color_convert` | Converts a colour between hex, RGB, HSL, HSV and OKLCH, and checks contrast |
 | `cron_explain` | Explains a cron schedule in plain English and lists the next runs |
+| `image_info` | Shows what a JPEG, PNG or WebP photo reveals: camera, date and the location it was taken |
+| `image_strip_metadata` | Removes the hidden location, camera details and comments from a photo, leaving the picture as it was |
+| `head_tags` | Writes the title, description, canonical, Open Graph and Twitter tags for a page |
+| `head_check` | Checks a page's HTML for missing or too-long head tags and says what to fix |
 
 Each result ends with a link to the matching tool on [snowkit.io](https://snowkit.io), in case you would rather see it in your browser.
 

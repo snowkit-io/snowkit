@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { TOOLS, runTool, ToolError } from "./tools.js";
 import { CASES } from "./text.js";
 
-const VALUE_FLAGS = new Set(["output", "pages", "angle", "range", "every", "page", "title", "level", "size", "indent", "case", "schema", "count", "against", "format"]);
-const BOOL_FLAGS = new Set(["overwrite", "json", "sort", "minify", "numbers", "utc", "ignore-case", "remove-empty", "keep-spaces", "help", "version"]);
+const VALUE_FLAGS = new Set(["output", "pages", "angle", "range", "every", "page", "title", "level", "size", "indent", "case", "schema", "count", "against", "format", "description", "url", "image", "site-name"]);
+const BOOL_FLAGS = new Set(["overwrite", "json", "sort", "minify", "numbers", "utc", "ignore-case", "remove-empty", "keep-spaces", "noindex", "help", "version"]);
 const SHORT = { o: "output", h: "help", v: "version" };
 
 export class UsageError extends Error {}
@@ -65,6 +65,10 @@ Usage:
   snowkit text dedupe [file.txt] [--ignore-case] [--remove-empty] [--keep-spaces]
   snowkit color "<colour>" [--against "<colour>"]
   snowkit cron "<expression>" [--count 5] [--utc]
+  snowkit image info <photo.jpg>
+  snowkit image clean <photo.jpg> [-o clean.jpg]
+  snowkit head tags --title "..." [--description "..."] [--url ...] [--image ...] [--site-name "..."] [--noindex]
+  snowkit head check <page.html>
   snowkit tools                list the tools AI apps can use
 
 Text commands read the file given, or standard input when it is piped.
@@ -128,6 +132,16 @@ export function plan(pos, f) {
   }
   if (cmd === "color" || cmd === "colour") return ["color_convert", clean({ color: need(sub, "colour"), against: f.against })];
   if (cmd === "cron") return ["cron_explain", clean({ expression: need(sub, "cron expression"), count: num(f.count, "count"), utc: f.utc || undefined })];
+  if (cmd === "image") {
+    if (sub === "info") return ["image_info", { input: need(rest[0], "image file") }];
+    if (sub === "clean") return ["image_strip_metadata", clean({ ...base, input: need(rest[0], "image file"), output: f.output })];
+    throw new UsageError("Choose an image command: info or clean.");
+  }
+  if (cmd === "head") {
+    if (sub === "tags") return ["head_tags", clean({ title: f.title, description: f.description, url: f.url, image: f.image, site_name: f["site-name"], noindex: f.noindex || undefined })];
+    if (sub === "check") return ["head_check", { input: need(rest[0], "HTML file") }];
+    throw new UsageError("Choose a head command: tags or check.");
+  }
   throw new UsageError("Unknown command “" + cmd + "”. Run snowkit --help to see them all.");
 }
 

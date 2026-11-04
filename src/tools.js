@@ -2,6 +2,8 @@ import { z } from "zod";
 import { mergePdfs, splitPdf, extractPages, rotatePdf, pdfInfo, markdownToPdf } from "./pdf.js";
 import { makeQr } from "./qr.js";
 import { jsonFormat, jsonValidate, sqlFormat, textStats, textTransform, colorConvert, cronExplain, TRANSFORMS } from "./text.js";
+import { imageInfo, stripMetadata } from "./image.js";
+import { headTags, checkHeadTags } from "./web.js";
 import { ToolError } from "./files.js";
 
 export { ToolError };
@@ -204,6 +206,61 @@ export const TOOLS = [
     },
     run: cronExplain,
   },
+  {
+    name: "image_info",
+    title: "Image metadata",
+    description: "Show what a JPEG, PNG or WebP photo reveals about itself: camera, date, editing software and the GPS location where it was taken, if any.",
+    link: "metadata-remover",
+    readOnly: true,
+    schema: {
+      input: path("Path to the image."),
+    },
+    run: imageInfo,
+  },
+  {
+    name: "image_strip_metadata",
+    title: "Remove image metadata",
+    description: "Remove the hidden location, camera details, dates and comments from a JPEG, PNG or WebP photo without changing the picture. Saves next to the original as name-clean unless output is set.",
+    link: "metadata-remover",
+    schema: {
+      input: path("Path to the image."),
+      output: outputPath("Defaults to the image's name with -clean, in the same folder."),
+      keep_color_profile: z.boolean().optional().describe("Keep the colour profile so colours look the same. Defaults to true."),
+      overwrite,
+    },
+    run: stripMetadata,
+  },
+  {
+    name: "head_tags",
+    title: "Make head tags",
+    description: "Write the title, description, canonical, Open Graph and Twitter tags for a web page, ready to paste into its <head>.",
+    link: "meta-tag-generator",
+    readOnly: true,
+    schema: {
+      title: z.string().optional().describe("The page title, about 60 characters at most."),
+      description: z.string().optional().describe("One or two sentences, about 155 characters at most."),
+      url: z.string().optional().describe("The page's full address, used as the canonical and og:url."),
+      image: z.string().optional().describe("Full address of a 1200 x 630 share image."),
+      image_alt: z.string().optional().describe("A short description of the share image."),
+      site_name: z.string().optional().describe("The site or app name."),
+      twitter: z.string().optional().describe("The site's X handle, with or without @."),
+      theme_color: z.string().optional().describe("A hex colour for the browser bar, such as #2f7cf6."),
+      noindex: z.boolean().optional().describe("Ask search engines not to list the page. Defaults to false."),
+    },
+    run: headTags,
+  },
+  {
+    name: "head_check",
+    title: "Check head tags",
+    description: "Check a web page's HTML for a missing or too-long title and description, share image, canonical and other head tags, with what to fix.",
+    link: "meta-tag-checker",
+    readOnly: true,
+    schema: {
+      html: z.string().optional().describe("The page's HTML. Use this or input."),
+      input: z.string().min(1).optional().describe("Path to an HTML file to read instead."),
+    },
+    run: checkHeadTags,
+  },
 ];
 
 export function findTool(name) {
@@ -212,7 +269,8 @@ export function findTool(name) {
 
 const MAX_FRAGMENT = 20000;
 const PDF_APP = { label: "Sign, fill, mark up or compress it in Snowkit PDF", slug: "pdf-workspace" };
-const NEXT = { pdf_merge: PDF_APP, pdf_split: PDF_APP, pdf_extract_pages: PDF_APP, pdf_rotate: PDF_APP, pdf_info: PDF_APP };
+const DESIGN_APP = { label: "Edit it in Snowkit Design", slug: "studio-editor" };
+const NEXT = { image_info: DESIGN_APP, image_strip_metadata: DESIGN_APP, pdf_merge: PDF_APP, pdf_split: PDF_APP, pdf_extract_pages: PDF_APP, pdf_rotate: PDF_APP, pdf_info: PDF_APP };
 
 const PREFILL = {
   qr_code: (a) => (/^https?:\/\/\S+$/i.test(a.text || "") ? ["qr-code", { url: a.text }] : null),
