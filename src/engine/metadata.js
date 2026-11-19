@@ -153,6 +153,7 @@ function jpeg(b, { keepColor = true, keepOrientation = true } = {}) {
   }
   let end = b.length;
   let p = i;
+  const cuts = [];
   while (p + 1 < b.length) {
     if (b[p] !== 0xff) {
       p++;
@@ -171,7 +172,12 @@ function jpeg(b, { keepColor = true, keepOrientation = true } = {}) {
       p += 2;
       continue;
     }
-    p += 2 + ((b[p + 2] << 8) | b[p + 3]);
+    const segEnd = p + 2 + ((b[p + 2] << 8) | b[p + 3]);
+    if (m === 0xfe || (m >= 0xe1 && m <= 0xef && m !== 0xee)) {
+      cuts.push([p, Math.min(segEnd, b.length)]);
+      report.found.push(m === 0xfe ? "Comment" : "APP" + (m - 0xe0) + " data");
+    }
+    p = segEnd;
     if (m === 0xda) {
       while (p + 1 < b.length && !(b[p] === 0xff && b[p + 1] !== 0 && !(b[p + 1] >= 0xd0 && b[p + 1] <= 0xd7))) p++;
     }
@@ -181,12 +187,19 @@ function jpeg(b, { keepColor = true, keepOrientation = true } = {}) {
     removed += b.length - end;
   }
   if (keepOrientation && report.orientation > 1 && report.orientation <= 8) keep.splice(1, 0, orientationExif(report.orientation));
-  keep.push(b.subarray(i, Math.min(end, b.length)));
+  let from = i;
+  for (const [s, e] of cuts) {
+    if (e > end) break;
+    keep.push(b.subarray(from, s));
+    removed += e - s;
+    from = e;
+  }
+  keep.push(b.subarray(from, Math.min(end, b.length)));
   report.found = [...new Set(report.found)];
   return { bytes: concat(keep), report, removed };
 }
 
-const PNG_DROP = new Set(["tEXt", "zTXt", "iTXt", "eXIf", "tIME"]);
+const PNG_DROP = new Set(["tEXt", "zTXt", "iTXt", "eXIf", "tIME", "caBX"]);
 
 function png(b, { keepColor = true } = {}) {
   const report = { format: "PNG", fields: [], gps: null, found: [], orientation: 1 };
@@ -217,6 +230,7 @@ function png(b, { keepColor = true } = {}) {
       report.found.push("EXIF");
     }
     if (type === "tIME") report.found.push("Timestamp");
+    if (type === "caBX") report.found.push("Content credentials");
     if (type === "iCCP" && !keepColor) report.found.push("Colour profile");
     if (drop) removed += chunk.length;
     else keep.push(chunk);
@@ -256,6 +270,9 @@ function webp(b, { keepColor = true } = {}) {
       drop = true;
     } else if (type === "XMP ") {
       report.found.push("XMP");
+      drop = true;
+    } else if (type === "C2PA") {
+      report.found.push("Content credentials");
       drop = true;
     } else if (type === "ICCP" && !keepColor) {
       report.found.push("Colour profile");

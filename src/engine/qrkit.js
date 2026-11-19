@@ -941,6 +941,12 @@ function sample(img, H, d) {
   return grid;
 }
 
+function transpose(grid, d) {
+  const out = new Uint8Array(d * d);
+  for (let y = 0; y < d; y++) for (let x = 0; x < d; x++) out[x * d + y] = grid[y * d + x];
+  return out;
+}
+
 function atDim(img, tl, tr, bl, ms, d) {
   const ver = (d - 17) / 4;
   const bx = tr.x + bl.x - tl.x;
@@ -956,7 +962,8 @@ function atDim(img, tl, tr, bl, ms, d) {
     const from = squareToQuad([3.5, 3.5, d - 3.5, 3.5, qm, qm, 3.5, d - 3.5]);
     const to = squareToQuad([tl.x, tl.y, tr.x, tr.y, qx, qy, bl.x, bl.y]);
     const H = times(to, adjugate(from));
-    const result = readGrid(sample(img, H, d), d);
+    const grid = sample(img, H, d);
+    const result = readGrid(grid, d) || readGrid(transpose(grid, d), d);
     if (result) return result;
   }
   return null;

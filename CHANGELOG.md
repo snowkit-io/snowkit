@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5
+
+- Removing photo metadata now also clears comments and other hidden data blocks that some cameras and apps add to JPEGs.
+- Cron schedules written with a step of 1, such as `*/1`, read as every minute or every hour, and schedules that never run stop searching quickly.
+- SQL formatting keeps array subscripts like `tags[1]` together and recognizes `CURRENT ROW` in window frames.
+- PDF results link to Linen PDF and image results to Design Brush, the new names of the Snowkit apps.
+
 ## 0.1.4
 
 - Added image tools: see what a photo reveals about itself, including where it was taken, and remove that hidden metadata without touching the picture.

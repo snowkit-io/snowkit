@@ -43,11 +43,13 @@ export async function buildDocPdf(L, blocks, opts = {}) {
   };
   const measure = (text, f, size) => fonts[f].widthOfTextAtSize(text, size);
   const images = opts.images || new Map();
-  const layout = layoutDocument(blocks, { page: opts.page, margin: opts.margin, base: opts.base, numbers: opts.numbers, measure, canEncode, image: (src) => (images.get(src) ? { w: images.get(src).w, h: images.get(src).h } : null) });
+  const layout = layoutDocument(blocks, { page: opts.page, margin: opts.margin, base: opts.base, numbers: opts.numbers, lineHeight: opts.lineHeight || undefined, measure, canEncode, image: (src) => (images.get(src) ? { w: images.get(src).w, h: images.get(src).h } : null) });
   const embedded = new Map();
   const color = (c) => L.rgb(c[0], c[1], c[2]);
+  const made = [];
   for (const p of layout.pages) {
     const page = doc.addPage([layout.width, layout.height]);
+    made.push(page);
     for (const o of p.ops) {
       if (o.op === 'text') {
         const t = { x: o.x, y: o.y, size: o.size, font: fonts[o.font] || fonts.regular, color: color(o.color) };
@@ -90,7 +92,21 @@ export async function buildDocPdf(L, blocks, opts = {}) {
       }
     }
   }
-  if (opts.title) doc.setTitle(opts.title);
+  if (opts.outline && layout.heads && layout.heads.length) {
+    const { writeOutline } = await import('./pdfoutline.js');
+    const top = [];
+    const stack = [];
+    for (const h of layout.heads) {
+      const node = { title: h.title.slice(0, 200), page: made[h.page], kids: [] };
+      while (stack.length && stack[stack.length - 1].level >= h.level) stack.pop();
+      (stack.length ? stack[stack.length - 1].node.kids : top).push(node);
+      stack.push({ level: h.level, node });
+    }
+    if (writeOutline(L, doc, top) !== false) doc.catalog.set(L.PDFName.of('PageMode'), L.PDFName.of('UseOutlines'));
+  }
+  if (opts.lang && /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i.test(opts.lang)) doc.catalog.set(L.PDFName.of('Lang'), L.PDFString.of(opts.lang));
+  if (opts.title) doc.setTitle(opts.title, { showInWindowTitleBar: true });
+
   doc.setCreator('Snowkit');
   doc.setProducer('Snowkit');
   const bytes = await doc.save();

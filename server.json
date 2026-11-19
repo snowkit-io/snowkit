@@ -8,12 +8,12 @@
     "url": "https://github.com/snowkit-io/snowkit",
     "source": "github"
   },
-  "version": "0.1.4",
+  "version": "0.1.5",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "snowkit",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "transport": {
         "type": "stdio"
       }

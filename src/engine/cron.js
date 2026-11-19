@@ -82,8 +82,10 @@ export function describe(expr) {
   const mins = [...c.minute.set].sort((a, b) => a - b);
   const hours = [...c.hour.set].sort((a, b) => a - b);
   let time;
-  const mStep = stepOf(c.minute, 0);
-  const hStep = stepOf(c.hour, 0);
+  let mStep = stepOf(c.minute, 0);
+  let hStep = stepOf(c.hour, 0);
+  if (mStep === 1) (c.minute.any = true), (mStep = null);
+  if (hStep === 1) (c.hour.any = true), (hStep = null);
   if (c.minute.any && c.hour.any) time = "Every minute";
   else if (mStep && c.hour.any) time = "Every " + mStep + " minutes";
   else if (mStep) time = "Every " + mStep + " minutes, " + (hours.length === 1 ? "during the " + pad(hours[0]) + ":00 hour" : "between " + clock(hours[0], 0) + " and " + clock(hours[hours.length - 1], 59));
@@ -118,7 +120,8 @@ export function next(expr, count = 5, from = new Date(), { utc = false } = {}) {
   set.minute(d);
   const domAny = c.dom.any;
   const dowAny = c.dow.any;
-  for (let i = 0; i < 366 * 24 * 60 * 5 && out.length < count; i++) {
+  const end = from.getTime() + 30 * 366 * 864e5;
+  for (let i = 0; i < 366 * 24 * 60 * 5 && out.length < count && d.getTime() <= end; i++) {
     if (!c.month.set.has(g.mo(d) + 1)) {
       set.month(d);
       continue;

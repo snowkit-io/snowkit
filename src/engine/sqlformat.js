@@ -6,7 +6,7 @@ const KEYWORDS = new Set(
     "CASCADE RESTRICT WITH RECURSIVE CASE WHEN THEN ELSE END ASC DESC NULLS TRUE FALSE OVER PARTITION WINDOW RETURNING CONFLICT DO NOTHING " +
     "DUPLICATE TEMPORARY TEMP REPLACE MERGE MATCHED BEGIN COMMIT ROLLBACK TRANSACTION GRANT REVOKE AUTO_INCREMENT AUTOINCREMENT IDENTITY ANY SOME " +
     "QUALIFY FILTER WITHIN COLLATE ESCAPE SIMILAR INTERVAL TOP SCHEMA DATABASE TRIGGER PROCEDURE FUNCTION RETURNS LANGUAGE EXPLAIN ANALYZE " +
-    "PRECEDING FOLLOWING UNBOUNDED RANGE FOR SHOW DESCRIBE USE EXEC EXECUTE DECLARE " +
+    "PRECEDING FOLLOWING UNBOUNDED CURRENT RANGE FOR SHOW DESCRIBE USE EXEC EXECUTE DECLARE " +
     "COUNT SUM AVG MIN MAX COALESCE NULLIF CAST CONVERT UPPER LOWER LENGTH SUBSTRING SUBSTR TRIM ROUND NOW CURRENT_DATE CURRENT_TIMESTAMP " +
     "CURRENT_TIME EXTRACT ROW_NUMBER RANK DENSE_RANK LAG LEAD CONCAT IFNULL ISNULL NVL DATE_TRUNC STRING_AGG ARRAY_AGG GROUP_CONCAT ABS FLOOR CEIL " +
     "CEILING FIRST_VALUE LAST_VALUE NTILE GREATEST LEAST " +
@@ -155,13 +155,17 @@ export function formatSql(sql, opts = {}) {
   const perLine = opts.columnsPerLine !== false;
   const S = [];
   let sawNl = false;
+  let sawSp = false;
   for (const t of tokenizeSql(sql)) {
     if (t.t === "ws") {
+      sawSp = true;
       if (t.v.includes("\n")) sawNl = true;
       continue;
     }
     t.nl = sawNl;
+    t.sp = sawSp;
     sawNl = false;
+    sawSp = false;
     S.push(t);
   }
   const lines = [];
@@ -199,6 +203,10 @@ export function formatSql(sql, opts = {}) {
     if (tok.t === "comma" || tok.t === "semi" || tok.t === "close" || tok.t === "dot") return false;
     if (prev.t === "open" || prev.t === "dot" || prev.unary) return false;
     if ((tok.t === "op" && tok.v === "::") || (prev.t === "op" && prev.v === "::")) return false;
+    if (tok.t === "op" && tok.v === "]") return false;
+    if (prev.t === "op" && prev.v === "[") return false;
+    const subscript = (tok.t === "op" && tok.v === "[") || (tok.t === "qident" && tok.v[0] === "[");
+    if (subscript && !tok.sp && (prev.t === "word" || prev.t === "qident" || prev.t === "close" || (prev.t === "op" && prev.v === "]"))) return false;
     if (tok.t === "open") {
       if (prev.t === "word" && !prev.kw) return tableParen();
       if (prev.t === "word" && FUNCLIKE.has(prev.up)) return false;

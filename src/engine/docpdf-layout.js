@@ -479,6 +479,7 @@ class Layout {
     this.canEncode = opts.canEncode || (() => true);
     this.imageFn = opts.image || (() => null);
     this.pages = [];
+    this.heads = [];
     this.skipped = 0;
     this.links = 0;
     this.newPage();
@@ -782,6 +783,7 @@ class Layout {
           };
         }
         if (head) item.keep = true;
+        if (head && n === 0) item.heading = { level: +b.style.slice(1), title: b.runs.map((r) => r.text || '').join('').replace(/\s+/g, ' ').trim() };
         out.push(item);
       });
       if (head && (b.style === 'h1' || b.style === 'h2') && !compact) {
@@ -850,6 +852,7 @@ class Layout {
       if (this.y - (need > this.top - this.bottom ? it.h : need) < this.bottom - 0.01 && !this.atTop) this.newPage();
       this.bars(it, this.y, it.h);
       it.draw(this.ops, this.left, this.y);
+      if (it.heading && it.heading.title) this.heads.push({ ...it.heading, page: this.pages.length - 1 });
       this.y -= it.h;
     }
   }
@@ -1063,7 +1066,7 @@ export function layoutDocument(blocks, opts = {}) {
   if (opts.numbers) L.numbers();
   const fonts = new Set();
   for (const p of L.pages) for (const o of p.ops) if (o.op === 'text') fonts.add(o.font);
-  return { width: L.w, height: L.h, pages: L.pages, skipped: L.skipped, links: L.links, fonts: [...fonts] };
+  return { width: L.w, height: L.h, pages: L.pages, skipped: L.skipped, links: L.links, fonts: [...fonts], heads: L.heads.filter((h) => h.page < L.pages.length) };
 }
 
 export function cssRules(text) {

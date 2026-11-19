@@ -404,6 +404,14 @@ export function renderInline(src, refs = new Map(), inLink = false) {
         continue;
       }
     }
+    if (BREAKS && c === "=" && src[i + 1] === "=" && src[i + 2] && !/[\s=]/.test(src[i + 2])) {
+      const end = src.indexOf("==", i + 3);
+      if (end > 0 && !/\s/.test(src[end - 1])) {
+        out += put("<mark>" + renderInline(src.slice(i + 2, end), refs, inLink) + "</mark>");
+        i = end + 2;
+        continue;
+      }
+    }
     if (c === "`") {
       let k = 1;
       while (src[i + k] === "`") k++;
@@ -476,6 +484,12 @@ export function renderInline(src, refs = new Map(), inLink = false) {
         i += mail[0].length;
         continue;
       }
+      const u = BREAKS && rest.match(/^<(\/?)u>/i);
+      if (u) {
+        out += put(u[1] ? "</u>" : "<u>");
+        i += u[0].length;
+        continue;
+      }
       out += "&lt;";
       i++;
       continue;
@@ -491,7 +505,7 @@ export function renderInline(src, refs = new Map(), inLink = false) {
       }
     }
     if (c === "\n") {
-      if (/ {2,}$/.test(out)) {
+      if (BREAKS || / {2,}$/.test(out)) {
         out = out.replace(/ +$/, "");
         out += put("<br>\n");
       } else {
@@ -529,16 +543,26 @@ function slugify(text, ids) {
   return id;
 }
 
+const CENTRE = /^\s*->\s?(.*?)\s?<-\s*$/;
+
+function centred(text) {
+  const lines = String(text).split("\n");
+  if (!BREAKS || !lines.every((l) => CENTRE.test(l))) return { text, align: "" };
+  return { text: lines.map((l) => CENTRE.exec(l)[1]).join("\n"), align: ' align="center"' };
+}
+
 function renderBlocks(blocks, ctx, tight) {
   const out = [];
   for (const b of blocks) {
     if (b.t === "para") {
-      const inner = renderInline(b.text, ctx.refs);
-      out.push(tight ? inner : "<p>" + inner + "</p>");
+      const c = centred(b.text);
+      const inner = renderInline(c.text, ctx.refs);
+      out.push(tight && !c.align ? inner : "<p" + c.align + ">" + inner + "</p>");
     } else if (b.t === "heading") {
-      const inner = renderInline(b.text, ctx.refs);
+      const c = centred(b.text);
+      const inner = renderInline(c.text, ctx.refs);
       const id = ctx.ids ? ' id="' + escapeHtml(slugify(inner, ctx.ids)) + '"' : "";
-      out.push("<h" + b.level + id + ">" + inner + "</h" + b.level + ">");
+      out.push("<h" + b.level + id + c.align + ">" + inner + "</h" + b.level + ">");
     } else if (b.t === "hr") {
       out.push("<hr>");
     } else if (b.t === "code") {
@@ -568,7 +592,18 @@ function renderBlocks(blocks, ctx, tight) {
   return out.join(tight ? "\n" : "\n");
 }
 
-export function renderMarkdown(src, { headingIds = true } = {}) {
+let BREAKS = false;
+
+export function renderMarkdown(src, { headingIds = true, breaks = false } = {}) {
+  BREAKS = breaks;
+  try {
+    return renderAll(src, headingIds);
+  } finally {
+    BREAKS = false;
+  }
+}
+
+function renderAll(src, headingIds) {
   const text = String(src == null ? "" : src).replace(/\r\n?/g, "\n").replace(/[\ue000\ue001\u0000]/g, "");
   const lines = text.split("\n").map(expandTabs);
   const refs = new Map();

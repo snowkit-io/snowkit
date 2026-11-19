@@ -13,7 +13,7 @@ test("image_info reports the location and camera details", async () => {
   assert.match(r.text, /Location: 45\.51000, -73\.57000/);
   assert.match(r.text, /Camera serial number: SN123456/);
   assert.equal(r.data.gps.lat, 45.51);
-  assert.equal(r.link, "https://snowkit.io/studio-editor/");
+  assert.equal(r.link, "https://snowkit.io/design-brush/app/");
 });
 
 test("image_strip_metadata removes the location and keeps the picture", async (t) => {

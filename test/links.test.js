@@ -20,6 +20,6 @@ test("plain pages when there is nothing safe to fill in", () => {
 });
 
 test("PDF tools point to the PDF app", () => {
-  assert.equal(link("pdf_merge", { inputs: ["a.pdf", "b.pdf"] }), "https://snowkit.io/pdf-workspace/");
-  assert.match(linkLabel(findTool("pdf_rotate"), {}), /Snowkit PDF/);
+  assert.equal(link("pdf_merge", { inputs: ["a.pdf", "b.pdf"] }), "https://snowkit.io/linen-pdf/app/");
+  assert.match(linkLabel(findTool("pdf_rotate"), {}), /Linen PDF/);
 });

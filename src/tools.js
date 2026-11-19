@@ -268,8 +268,8 @@ export function findTool(name) {
 }
 
 const MAX_FRAGMENT = 20000;
-const PDF_APP = { label: "Sign, fill, mark up or compress it in Snowkit PDF", slug: "pdf-workspace" };
-const DESIGN_APP = { label: "Edit it in Snowkit Design", slug: "studio-editor" };
+const PDF_APP = { label: "Sign, fill, mark up or compress it in Linen PDF", slug: "linen-pdf/app" };
+const DESIGN_APP = { label: "Edit it in Design Brush", slug: "design-brush/app" };
 const NEXT = { image_info: DESIGN_APP, image_strip_metadata: DESIGN_APP, pdf_merge: PDF_APP, pdf_split: PDF_APP, pdf_extract_pages: PDF_APP, pdf_rotate: PDF_APP, pdf_info: PDF_APP };
 
 const PREFILL = {
